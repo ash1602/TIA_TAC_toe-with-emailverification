@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li>TicTacToe</li>
+        </ul>
+    </nav>
+
+    <div class="gameContainer">
+        <div class="container">
+            <div data-cell-index="0" class="space bt-0 bl-0"></div>
+            <div data-cell-index="1" class="space bt-0"></div>
+            <div data-cell-index="2" class="space bt-0 br-0"></div>
+            <div data-cell-index="3" class="space bl-0"></div>
+            <div data-cell-index="4" class="space"></div>
+            <div data-cell-index="5" class="space br-0"></div>
+            <div data-cell-index="6" class="space bl-0 bb-0"></div>
+            <div data-cell-index="7" class="space bb-0"></div>
+            <div data-cell-index="8" class="space bb-0 br-0"></div>
+        </div>
+        <div class="gameInfo">
+            <h1>Welcome to Tic Tac : {{username}}</h1>
+            <div>
+                <!-- <span class="info">Turn for X</span> -->
+                <button id="reset">Reset</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhaina+2&family=Roboto&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        nav {
+            background-color: rgb(37, 9, 37);
+            color: white;
+            height: 65px;
+            font-size: 27px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        nav ul {
+            list-style-type: none;
+        }
+
+        .gameContainer {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-rows: repeat(3, 10vw);
+            grid-template-columns: repeat(3, 10vw);
+            font-family: 'Roboto', sans-serif;
+            position: relative;
+        }
+
+        .space {
+            border: 2px solid black;
+            font-size: 8vw;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .space:hover {
+            background-color: rgb(242, 234, 250);
+        }
+
+        .info {
+            font-size: 22px;
+        }
+
+        .gameInfo {
+            padding: 0 34px;
+            font-family: 'Baloo Bhaina 2', cursive;
+        }
+
+        .gameInfo h1 {
+            font-size: 2.5rem;
+        }
+
+        .br-0 {
+            border-right: 0;
+        }
+
+        .bl-0 {
+            border-left: 0;
+        }
+
+        .bt-0 {
+            border-top: 0;
+        }
+
+        .bb-0 {
+            border-bottom: 0;
+        }
+
+        #reset {
+            margin: 0 23px;
+            padding: 1px 18px;
+            background: #f3e7f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Baloo Bhaina 2';
+            font-size: 15px;
+            font-weight: bolder;
+        }
+
+
+        @media screen and (max-width: 950px) {
+            .gameContainer {
+                flex-wrap: wrap;
+            }
+
+            .gameInfo {
+                margin-top: 34px;
+            }
+
+            .gameInfo h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                grid-template-rows: repeat(3, 20vw);
+                grid-template-columns: repeat(3, 20vw);
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+    <script>
+        var room_code = "{{room_code}}"
+        var username = "{{username}}"
+        var player = username.charAt(0)
+
+        console.log(room_code, player)
+
+        let socket = new WebSocket("ws://localhost:8000/ws/play/" + room_code)
+
+        let boardBlocks = ["", "", "", "", "", "", "", "", ""]
+
+        let elementArray = document.querySelectorAll('.space')
+
+        elementArray.forEach(function (elem) {
+            elem.addEventListener("click", function (event) {
+                // checkturn()
+                console.log(event)
+                setBordvalue(event.path[0].getAttribute("data-cell-index"), player)
+            })
+        })
+
+        function checkturn(player){
+            if(player == "{{request.user.username}}"){
+                swal("its not your turn" , "x", "info")
+            }
+        }
+        function checkGame(){
+            var count = 0;
+            boardBlocks.map((game)=>{
+                if(game != ""){
+                    count++;
+                }
+            })
+            if (count>=9){
+                var data = {"type":"over"}
+                socket.send(JSON.stringify(data))
+                swal("Game over!", "Draw", "warning")
+            }
+            
+        }
+  
+
+        function setBordvalue(index, value) {
+            var data = {
+                "player": player,
+                "index": index,
+                "type" : "running"
+            }
+            if (boardBlocks[parseInt(index)] == "") {
+                boardBlocks[parseInt(index)] = value
+                elementArray[parseInt(index)].innerHTML = value
+                socket.send(JSON.stringify(data))
+                console.log("{{request.user}}" , player, value)
+                checkWon(value , player)
+            }
+            
+            else {
+                swal("place already filled" , "fill another box" , "info")
+            }}
+
+        function setAnotherBordvalue(index, value) {
+               console.log(",,,,,,,,,,,,,,,,,," , value)
+                boardBlocks[parseInt(index)] = value
+                elementArray[parseInt(index)].innerHTML = value
+            }
+           
+
+        socket.onopen = function (event) {
+                console.log("socket connected............")
+            }
+        socket.onclose = function(event){
+            console.log(event)
+            swal("This room is already full", "Try new room code or create one", "error")
+        }
+       
+        socket.onmessage = function (event) {
+            //    console.log(event.data)
+            const data = JSON.parse(event.data);
+            // console.log(data)
+            const data1 = JSON.parse(data.payload);
+            console.log(data1)
+            if(data1.type == 'end' && data1.player !== player){
+                swal("Sorry!" , "you lost", "error")
+            }
+            else if(data1.type == 'over' ){
+
+                swal("Game over!" , "Draw", "warning")
+                return;
+            }
+            else if(data1.type == 'running' && data1.player !== player ){
+                setAnotherBordvalue(data1.index, data1.player)
+            }
+        }
+
+        function checkWon(value, player){
+            var won = false;
+
+            if(boardBlocks[0] === value && boardBlocks[1] === value && boardBlocks[2] === value){
+                      won = true; }
+            else if(boardBlocks[3] === value && boardBlocks[4] === value && boardBlocks[5] === value){
+                      won = true; }
+            else if(boardBlocks[6] === value && boardBlocks[7] === value && boardBlocks[8] === value){
+            won = true; }
+            else if(boardBlocks[0] === value && boardBlocks[4] === value && boardBlocks[8] === value){
+            won = true; }
+            else if(boardBlocks[0] === value && boardBlocks[3] === value && boardBlocks[6] === value){
+            won = true; }
+            else if(boardBlocks[1] === value && boardBlocks[4] === value && boardBlocks[7] === value){
+            won = true; } 
+            else if(boardBlocks[2] === value && boardBlocks[5] === value && boardBlocks[8] === value){
+            won = true; }
+            else if(boardBlocks[2] === value && boardBlocks[4] === value && boardBlocks[6] === value){
+            won = true;
+            }
+            if(won){
+                var data = {'type': "end", 'player':player}
+                socket.send(JSON.stringify(data))
+                // alert("{{request.user}}  : " + "won")
+                swal("You won!" , "" , "success")
+            }
+            checkGame();
+        } 
+    </script>
+</body>
+</html>
