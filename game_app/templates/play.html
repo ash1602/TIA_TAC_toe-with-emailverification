@@ -28,7 +28,7 @@
             <div data-cell-index="8" class="space bb-0 br-0"></div>
         </div>
         <div class="gameInfo">
-            <h1>Welcome to Tic Tac : {{username}}</h1>
+            <h1>Welcome to Tic Tac : {{request.user.username}}</h1>
             <div>
                 <!-- <span class="info">Turn for X</span> -->
                 <button id="reset">Reset</button>
@@ -149,7 +149,7 @@
     <script>
         var room_code = "{{room_code}}"
         var username = "{{username}}"
-        var player = username.charAt(0)
+        var player = username
 
         console.log(room_code, player)
 
@@ -162,16 +162,12 @@
         elementArray.forEach(function (elem) {
             elem.addEventListener("click", function (event) {
                 // checkturn()
-                console.log(event)
+                // console.log(event)
                 setBordvalue(event.path[0].getAttribute("data-cell-index"), player)
             })
         })
 
-        function checkturn(player){
-            if(player == "{{request.user.username}}"){
-                swal("its not your turn" , "x", "info")
-            }
-        }
+
         function checkGame(){
             var count = 0;
             boardBlocks.map((game)=>{
