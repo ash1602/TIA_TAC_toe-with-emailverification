@@ -1,4 +1,3 @@
-import imp
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 from .models import Room
@@ -12,9 +11,9 @@ class GameRoom(AsyncWebsocketConsumer):
         print(self.room_group_name)
         self.users_count = await self.get_room_users(self.room_name)
         await self.connect_user(self.room_name)
-        print(f"connected users in room ..........................{self.users_count}")
+        print(f"connected users in room ......{self.users_count}")
         if self.users_count >= 2:
-            self.close()
+            await self.close()
         else:
             await self.channel_layer.group_add(
                 self.room_group_name,
@@ -33,6 +32,9 @@ class GameRoom(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         print(text_data)
         text_data_json = json.loads(text_data)
+        user = self.scope['user']
+        text_data_json['user'] = self.scope["user"].username
+        print(user)
         await self.channel_layer.group_send(
             self.room_group_name, {
                 'type': 'run_game',
