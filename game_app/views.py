@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Game
 from .models import Room
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 
 
@@ -17,9 +19,10 @@ def prefrences():
     return tu
 
 
+@login_required(login_url="/")
 def home(request):
     if request.method == "POST":
-        username = request.POST.get('username')
+        username = request.user.username
         option = request.POST.get('option')
         room_code = request.POST.get('room_code')
         # prefrence = request.POST.get('prefrence')
@@ -50,6 +53,7 @@ def home(request):
     return render(request, "index.html")
 
 
+@login_required(login_url="/")
 def playgame(request, room_code):
     prefrence = request.GET.get('prefrence')
     print(f"username is............{prefrence}")
